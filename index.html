@@ -367,10 +367,50 @@ background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/sv
             <h3 class="font-display font-bold text-2xl text-zinc-900 dark:text-white mb-3" x-text="selectedProject.title"></h3>
             <p class="text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-5 leading-relaxed" x-text="selectedProject.shortDescription"></p>
             <div class="text-sm text-zinc-500 dark:text-zinc-400 leading-relaxed whitespace-pre-line" x-text="selectedProject.longDescription"></div>
+
+            <!-- Gallery Images -->
+            <template x-if="selectedProject.galleryImages && selectedProject.galleryImages.length > 0">
+              <div class="mt-7">
+                <p class="text-xs font-medium text-zinc-500 dark:text-zinc-400 uppercase tracking-widest mb-3">Screenshots</p>
+                <div class="flex flex-col gap-3">
+                  <template x-for="(img, idx) in selectedProject.galleryImages" :key="idx">
+                    <button type="button"
+                      @click="openLightbox(img.url)"
+                      class="w-full rounded-xl overflow-hidden focus:outline-none focus:ring-2 focus:ring-accent group">
+                      <img :src="img.url" :alt="selectedProject.title + ' screenshot ' + (idx + 1)"
+                        class="w-full h-auto object-cover group-hover:opacity-90 transition-opacity duration-200">
+                    </button>
+                  </template>
+                </div>
+              </div>
+            </template>
           </div>
         </div>
       </template>
     </div>
+  </div>
+
+  <!-- ── Lightbox ── -->
+  <div
+    x-show="lightboxImage"
+    x-cloak
+    @click="closeLightbox()"
+    @keydown.escape.window="closeLightbox()"
+    class="fixed inset-0 z-[70] flex items-center justify-center p-4 bg-black/85 backdrop-blur-sm cursor-zoom-out"
+    x-transition:enter="transition ease-out duration-150"
+    x-transition:enter-start="opacity-0"
+    x-transition:enter-end="opacity-100"
+    x-transition:leave="transition ease-in duration-100"
+    x-transition:leave-start="opacity-100"
+    x-transition:leave-end="opacity-0">
+    <button
+      @click.stop="closeLightbox()"
+      class="absolute top-4 right-4 w-9 h-9 flex items-center justify-center rounded-full bg-white/10 hover:bg-white/20 transition-colors"
+      aria-label="Close image">
+      <svg class="w-5 h-5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+    </button>
+    <img :src="lightboxImage" alt="Screenshot" @click.stop
+      class="max-w-full max-h-[90vh] rounded-2xl shadow-2xl object-contain cursor-default">
   </div>
 </section>
 
@@ -673,6 +713,7 @@ function projects() {
     projectsData: [],
     filter: 'all',
     selectedProject: null,
+    lightboxImage: null,
 
     categories: [
       { value: 'all',       label: 'All'       },
@@ -695,7 +736,16 @@ function projects() {
 
     closeModal() {
       this.selectedProject = null;
+      this.lightboxImage = null;
       document.body.style.overflow = '';
+    },
+
+    openLightbox(url) {
+      this.lightboxImage = url;
+    },
+
+    closeLightbox() {
+      this.lightboxImage = null;
     },
 
     init() {
